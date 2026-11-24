@@ -1,0 +1,11 @@
+.git
+.github
+__pycache__
+*.pyc
+data
+models
+tests
+k8s
+dags
+docs
+*.md

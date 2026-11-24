@@ -1,0 +1,54 @@
+# Local integrated environment: Flask API + Airflow + Postgres
+# Prepare once:  mkdir -p data models && chmod -R 777 data models
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    image: btc-forecast:local
+    ports:
+      - "5001:5000"
+    environment:
+      LOG_LEVEL: INFO
+      RELOAD_TOKEN: change-me
+    volumes:
+      - ./models:/app/models
+
+  airflow:
+    image: apache/airflow:2.9.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: standalone   # runs db migrate + webserver + scheduler; admin password is in the logs
+    ports:
+      - "8081:8080"
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      _PIP_ADDITIONAL_REQUIREMENTS: "yfinance==0.2.43 xgboost==2.1.1 scikit-learn==1.5.1 joblib==1.4.2"
+      PYTHONPATH: /opt/airflow/project
+      DATA_DIR: /opt/airflow/project/data
+      MODEL_DIR: /opt/airflow/project/models
+      API_RELOAD_URL: http://api:5000/admin/reload
+      RELOAD_TOKEN: change-me
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./src:/opt/airflow/project/src
+      - ./data:/opt/airflow/project/data
+      - ./models:/opt/airflow/project/models
+
+volumes:
+  pg_data:

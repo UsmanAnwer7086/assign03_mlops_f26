@@ -1,0 +1,32 @@
+# One-off bootstrap job: fetch data, build features, train, and write the model to the PVC.
+# Run before (or right after) deploying:  kubectl apply -f k8s/train-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: btc-initial-train
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: train
+          image: YOUR_DOCKERHUB_USER/btc-forecast:latest
+          imagePullPolicy: Always
+          command: ["sh", "-c"]
+          args:
+            - python -m src.etl_fetch && python -m src.preprocess && python -m src.train_forecast
+          envFrom:
+            - configMapRef:
+                name: btc-forecast-config
+          volumeMounts:
+            - name: models
+              mountPath: /app/models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: btc-models-pvc
