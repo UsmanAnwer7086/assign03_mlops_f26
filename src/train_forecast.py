@@ -3,6 +3,7 @@
 Validation: hold out the last 7 days, forecast them recursively, compute MAE/RMSE/MAPE.
 If MAPE <= threshold the model is re-fit on all data and written atomically to MODEL_DIR.
 """
+
 import argparse
 import json
 import logging
@@ -88,7 +89,7 @@ def train_and_register(df, model_dir, mape_threshold=None):
     }
     metrics["version"] = meta["version"]
     _atomic_write(model_dir / "model.joblib", lambda tmp: joblib.dump(final, tmp))
-    _write_json(model_dir / "closes.json", [float(c) for c in closes[-(MIN_HISTORY * 2) :]])
+    _write_json(model_dir / "closes.json", [float(c) for c in closes[-(MIN_HISTORY * 2):]])
     _write_json(model_dir / "metrics.json", metrics)
     _write_json(model_dir / "meta.json", meta)  # written last: the API watches this file
     result["meta"] = meta

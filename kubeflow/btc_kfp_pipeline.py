@@ -3,6 +3,7 @@
 Every step is a container component running the same image that is pushed by CI/CD.
 Compile with:  python kubeflow/btc_kfp_pipeline.py   -> btc_kfp_pipeline.yaml
 """
+
 import os
 
 from kfp import compiler, dsl

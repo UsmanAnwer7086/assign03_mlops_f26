@@ -1,4 +1,5 @@
 """Flask REST API serving the 7-day BTC-USD closing price forecast."""
+
 import hmac
 import json
 import logging

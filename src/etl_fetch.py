@@ -1,9 +1,10 @@
 """Fetch daily BTC-USD OHLCV data (yfinance first, Binance public API as fallback)."""
+
 import argparse
 import logging
 import os
 from pathlib import Path
-
+from datetime import datetime, timedelta, timezone
 import pandas as pd
 import requests
 import yfinance as yf
@@ -18,8 +19,6 @@ DEFAULT_DAYS = 1500
 def default_raw_path():
     return Path(os.getenv("DATA_DIR", "data")) / "raw" / "btc_usd.csv"
 
-
-from datetime import datetime, timedelta, timezone
 
 def _fetch_yfinance(days):
     end_dt = datetime.now(timezone.utc)
@@ -46,6 +45,7 @@ def _fetch_yfinance(days):
 
     return df[COLUMNS]
 
+
 def _fetch_binance(days):
     resp = requests.get(
         "https://api.binance.com/api/v3/klines",
@@ -53,9 +53,7 @@ def _fetch_binance(days):
         timeout=30,
     )
     resp.raise_for_status()
-    rows = [
-        [pd.to_datetime(k[0], unit="ms"), k[1], k[2], k[3], k[4], k[5]] for k in resp.json()
-    ]
+    rows = [[pd.to_datetime(k[0], unit="ms"), k[1], k[2], k[3], k[4], k[5]] for k in resp.json()]
     df = pd.DataFrame(rows, columns=COLUMNS)
     return df.astype({c: float for c in COLUMNS[1:]})
 

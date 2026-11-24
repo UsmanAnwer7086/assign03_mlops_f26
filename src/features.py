@@ -3,6 +3,7 @@
 Features are scale-free (returns and ratios), and the target is the next-day return, so the
 tree model does not have to extrapolate absolute BTC prices.
 """
+
 import numpy as np
 import pandas as pd
 
@@ -15,7 +16,7 @@ MAX_DAILY_MOVE = 0.20
 
 def make_row(closes):
     """Build one feature row from the tail of a close-price history."""
-    s = np.asarray(closes[-(MIN_HISTORY + 1) :], dtype=float)
+    s = np.asarray(closes[-(MIN_HISTORY + 1):], dtype=float)
     last = s[-1]
     row = {f"ret_{i}": s[-i] / s[-i - 1] - 1 for i in range(1, LAGS + 1)}
     row["ma7"] = s[-7:].mean() / last
